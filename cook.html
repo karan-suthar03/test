@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cookie Test</title>
+  </head>
+  <body>
+    <h1>Cookie Test</h1>
+    <p>Click the button to add a cookie:</p>
+    <button onclick="addCookie()">Add Cookie</button>
+    <p id="cookieValue"></p>
+    
+    <script>
+      function addCookie() {
+        document.cookie = "testCookie=Hello World";
+        document.getElementById("cookieValue").innerHTML = "Cookie added: " + document.cookie;
+      }
+    </script>
+  </body>
+</html>
