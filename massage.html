@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Messaging Website</title>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-firestore.js"></script>
+	<style>
+	
+#message-form {
+  position: fixed;
+  bottom: 7%;
+  display: flex;
+   
+}
+
+#message-form button { /* prevent button from shrinking */
+  flex-shrink: 0;
+     /* add 7% margin to the left */
+}
+
+
+#message-container {
+  height: calc(100vh - 150px); /* adjust the height as needed */
+  overflow-x: hidden;
+  padding: 20px;
+  word-wrap: break-word;
+  overflow-y: scroll;
+  font-size: 20px;
+}
+#send{
+margin-right: 7%;
+}
+#emoji-button {
+  font-size: 30px;
+  flex-shrink: 0;
+  margin-left: 7%;
+}
+	</style>
+  </head>
+  <body>
+    <div id="login-container">
+      
+      <form id="login-form">
+	  <h1>Login</h1><br>
+        <input type="text" id="username-input" placeholder="Enter username">
+        <button type="submit">Login</button>
+      </form>
+    </div>
+
+    <div id="chat-container" style="display: none;">
+  <div id="message-container">
+    <!-- messages will be dynamically added here -->
+    
+  </div>
+  <div>
+  <form id="message-form" style="width: 100%;">
+   <button type="button" id="emoji-button">😀</button>
+      <input type="text" style="width: 100%;flex-grow: 14;margin-left: auto;font-size: 30px;" id="message-input">
+      <button id="send" type="submit">Send</button>
+    </form>
+	</div>
+</div>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyDjdHKJiE9_0-pGZTqfRWIc_YNvYh7dIyg",
+    authDomain: "new-ascii-test.firebaseapp.com",
+    projectId: "new-ascii-test",
+    storageBucket: "new-ascii-test.appspot.com",
+    messagingSenderId: "455636189959",
+    appId: "1:455636189959:web:ceb7d59a1702505e86bba2",
+    measurementId: "G-F38CHL5MY7"
+      };
+
+     firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const loginContainer = document.querySelector('#login-container');
+const chatContainer = document.querySelector('#chat-container');
+const loginForm = document.querySelector('#login-form');
+const usernameInput = document.querySelector('#username-input');
+const messageForm = document.querySelector('#message-form');
+const messageInput = document.querySelector('#message-input');
+const messageContainer = document.querySelector('#message-container');
+
+// Listen for login form submission
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const username = usernameInput.value;
+  const userRef = db.collection('users').doc(username);
+  userRef.get()
+    .then((doc) => {
+      if (doc.exists) {
+        currentUser = username;
+        loginForm.reset();
+        loginForm.style.display = 'none';
+        chatContainer.style.display = 'block';
+        db.collection('messages')
+          .orderBy('timestamp', 'asc')
+          .onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+              if (change.type === 'added') {
+                const message = change.doc.data();
+                const messageElement = document.createElement('div');
+                messageElement.textContent = message.message;
+                messageContainer.appendChild(messageElement);
+				messageContainer.scrollTop = messageContainer.scrollHeight;
+              }
+            });
+          });
+      } else {
+        console.log('User does not exist');
+      }
+    })
+    .catch((error) => {
+      console.log('Error getting user:', error);
+    });
+});
+
+// Listen for message form submission
+// Listen for message form submission
+messageForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const message = messageInput.value;
+  if (message.trim() === '') return;
+  db.collection('messages').add({
+    message: `${currentUser}: ${message}`,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    user: currentUser,
+  });
+  messageInput.value = '';
+});
+
+    </script>
+  </body>
+</html>
